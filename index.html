@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IN CELL - Top Up Mobile Legends</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background: radial-gradient(circle at top right, rgba(59,130,246,0.30), transparent 35%), radial-gradient(circle at bottom left, rgba(168,85,247,0.20), transparent 30%), linear-gradient(180deg,#020617,#0f172a,#1e293b,#0f172a);
+  background-color:#0f172a;
+  background-attachment: fixed;
+  color:#fff; min-height:100vh;
+}
+.container{max-width:420px;margin:0 auto;padding:24px 16px}
+.header{text-align:center;margin-bottom:24px}
+h1{margin:0;font-size:42px;font-weight:800}
+.subtitle{color:#bfdbfe;margin-top:8px}
+.card{
+  background:rgba(30,41,59,.85); border:1px solid rgba(59,130,246,.4);
+  border-radius:16px; padding:24px;
+}
+label{display:block;margin-bottom:8px;font-weight:600;font-size:14px}
+input{
+  width:100%; padding:12px; border-radius:10px; border:1px solid #475569;
+  background:#334155; color:#fff; font-size:16px;
+}
+small{color:#94a3b8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn-option{
+  padding:12px; border:2px solid #475569; border-radius:10px;
+  background:#334155; color:#fff; cursor:pointer; text-align:center;
+}
+.btn-option.active{border-color:#3b82f6;background:rgba(59,130,246,.2)}
+.pay-option.active{border-color:#22c55e;background:rgba(34,197,94,.2)}
+.summary{
+  margin-top:16px; background:rgba(51,65,85,.5); padding:16px; border-radius:10px;
+}
+.row{display:flex;justify-content:space-between;margin:6px 0;color:#cbd5e1}
+.total{font-weight:700;color:#4ade80}
+.order{
+  width:100%; margin-top:16px; padding:14px; border:none; border-radius:10px;
+  background:#16a34a; color:#fff; font-size:18px; font-weight:700; cursor:pointer;
+}
+.order:disabled{opacity:.5; cursor:not-allowed}
+.footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:16px;line-height:1.6}
+.section{margin-top:20px}
+.status{margin-top:8px;font-size:13px}
+.valid{color:#4ade80}
+.invalid{color:#f87171}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>IN CELL</h1>
+    <div class="subtitle">Top Up Mobile Legends</div>
+  </div>
+
+  <div class="card">
+    <label>ID Akun Mobile Legends</label>
+    <input id="accountId" type="text" placeholder="Masukkan ID Akun" inputmode="numeric">
+    <div id="status" class="status"></div>
+    <small>Format: angka saja, minimal 3 digit</small>
+
+    <div class="section">
+      <label>Pilih Paket</label>
+      <div id="packages" class="grid"></div>
+    </div>
+
+    <div class="section">
+      <label>Metode Pembayaran</label>
+      <div id="payments" class="pay-grid"></div>
+    </div>
+
+    <div class="summary">
+      <div class="row"><span>Nominal:</span><span id="sumNominal"></span></div>
+      <div class="row"><span>Harga:</span><span id="sumPrice"></span></div>
+      <div class="row"><span>Total:</span><span id="sumTotal" class="total"></span></div>
+    </div>
+
+    <button id="orderBtn" class="order" disabled>Order via WhatsApp</button>
+  </div>
+
+  <div class="footer">
+    <div>Pembayaran aman dengan QRIS, DANA, dan BCA</div>
+    <div>NMID: ID1026520807169</div>
+  </div>
+</div>
+
+<script>
+const PACKAGES = [
+  { nominal: 50, price: 5000 },
+  { nominal: 100, price: 10000 },
+  { nominal: 200, price: 20000 },
+  { nominal: 500, price: 50000 },
+  { nominal: 1000, price: 100000 },
+  { nominal: 2000, price: 200000 },
+];
+
+const PAYMENTS = [
+  { name: 'QRIS', icon: '⚡' },
+  { name: 'DANA', icon: '📱' },
+  { name: 'BCA', icon: '🏦' },
+];
+
+let selectedPackage = PACKAGES[0];
+let selectedPayment = PAYMENTS[0];
+
+const fmt = n => new Intl.NumberFormat('id-ID', {
+  style:'currency', currency:'IDR', minimumFractionDigits:0
+}).format(n);
+
+function renderPackages() {
+  const el = document.getElementById('packages');
+  el.innerHTML = '';
+  PACKAGES.forEach(pkg => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-option' + (pkg === selectedPackage ? ' active' : '');
+    btn.innerHTML = `<div><b>${pkg.nominal}</b></div><div style="font-size:12px;color:#cbd5e1">${fmt(pkg.price)}</div>`;
+    btn.onclick = () => { selectedPackage = pkg; renderPackages(); updateSummary(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderPayments() {
+  const el = document.getElementById('payments');
+  el.innerHTML = '';
+  PAYMENTS.forEach(pay => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-option pay-option' + (pay === selectedPayment ? ' active' : '');
+    btn.innerHTML = `<div style="font-size:24px">${pay.icon}</div><div style="font-size:12px">${pay.name}</div>`;
+    btn.onclick = () => { selectedPayment = pay; renderPayments(); };
+    el.appendChild(btn);
+  });
+}
+
+function isValidId() {
+  const id = document.getElementById('accountId').value.trim();
+  return /^\d{3,20}$/.test(id);
+}
+
+function updateStatus() {
+  const status = document.getElementById('status');
+  const btn = document.getElementById('orderBtn');
+  const id = document.getElementById('accountId').value.trim();
+
+  if (!id) {
+    status.textContent = '';
+    btn.disabled = true;
+    return;
+  }
+
+  if (isValidId()) {
+    status.textContent = '✓ Valid';
+    status.className = 'status valid';
+    btn.disabled = false;
+  } else {
+    status.textContent = '✗ Tidak Valid';
+    status.className = 'status invalid';
+    btn.disabled = true;
+  }
+}
+
+function updateSummary() {
+  document.getElementById('sumNominal').textContent = selectedPackage.nominal + ' Diamond';
+  document.getElementById('sumPrice').textContent = fmt(selectedPackage.price);
+  document.getElementById('sumTotal').textContent = fmt(selectedPackage.price);
+}
+
+document.getElementById('accountId').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+  updateStatus();
+});
+
+document.getElementById('orderBtn').addEventListener('click', () => {
+  const id = document.getElementById('accountId').value.trim();
+  const message = `Halo, saya ingin top up Mobile Legends:\n\nID Akun: ${id}\nNominal: ${selectedPackage.nominal} Diamond\nTotal Bayar: ${fmt(selectedPackage.price)}\nMetode Pembayaran: ${selectedPayment.name}\n\nTerima kasih!`;
+  window.open(`https://wa.me/6287758614675?text=${encodeURIComponent(message)}`, '_blank');
+});
+
+renderPackages();
+renderPayments();
+updateSummary();
+</script>
+</body>
+</html>
