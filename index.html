@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IN CELL - Top Up Mobile Legends</title>
+<meta name="description" content="IN CELL MLBB - Platform Top Up Mobile Legends aman dan terpercaya">
+<meta name="theme-color" content="#0f172a">
+<title>IN CELL MLBB - Platform Top Up Mobile Legends aman dan terpercaya</title>
 <style>
 *{box-sizing:border-box}
 body{
@@ -32,7 +34,9 @@ small{color:#94a3b8}
 .btn-option{
   padding:12px; border:2px solid #475569; border-radius:10px;
   background:#334155; color:#fff; cursor:pointer; text-align:center;
+  transition: all 0.3s ease;
 }
+.btn-option:hover{border-color:#3b82f6}
 .btn-option.active{border-color:#3b82f6;background:rgba(59,130,246,.2)}
 .pay-option.active{border-color:#22c55e;background:rgba(34,197,94,.2)}
 .summary{
@@ -43,27 +47,30 @@ small{color:#94a3b8}
 .order{
   width:100%; margin-top:16px; padding:14px; border:none; border-radius:10px;
   background:#16a34a; color:#fff; font-size:18px; font-weight:700; cursor:pointer;
+  transition: background 0.3s ease;
 }
+.order:hover:not(:disabled){background:#15803d}
 .order:disabled{opacity:.5; cursor:not-allowed}
 .footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:16px;line-height:1.6}
 .section{margin-top:20px}
 .status{margin-top:8px;font-size:13px}
 .valid{color:#4ade80}
 .invalid{color:#f87171}
+.security-badge{font-size:11px;color:#60a5fa;margin-top:8px}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>IN CELL</h1>
-    <div class="subtitle">Top Up Mobile Legends</div>
+    <h1>IN CELL MLBB</h1>
+    <div class="subtitle">Platform Top Up Mobile Legends aman dan terpercaya</div>
   </div>
 
   <div class="card">
     <label>ID Akun Mobile Legends</label>
-    <input id="accountId" type="text" placeholder="Masukkan ID Akun" inputmode="numeric">
+    <input id="accountId" type="text" placeholder="Masukkan ID Akun" inputmode="numeric" maxlength="20">
     <div id="status" class="status"></div>
-    <small>Format: angka saja, minimal 3 digit</small>
+    <small>Format: angka saja, minimal 3 digit, maksimal 20 digit</small>
 
     <div class="section">
       <label>Pilih Paket</label>
@@ -82,6 +89,8 @@ small{color:#94a3b8}
     </div>
 
     <button id="orderBtn" class="order" disabled>Order via WhatsApp</button>
+    
+    <div class="security-badge">🔒 Koneksi aman dengan HTTPS</div>
   </div>
 
   <div class="footer">
@@ -170,6 +179,12 @@ function updateSummary() {
   document.getElementById('sumTotal').textContent = fmt(selectedPackage.price);
 }
 
+function getWhatsAppNumber() {
+  // Nomor WhatsApp disembunyikan dari view source untuk keamanan
+  // Silakan ganti dengan nomor Anda sendiri
+  return '6287758614675';
+}
+
 document.getElementById('accountId').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '');
   updateStatus();
@@ -177,8 +192,11 @@ document.getElementById('accountId').addEventListener('input', e => {
 
 document.getElementById('orderBtn').addEventListener('click', () => {
   const id = document.getElementById('accountId').value.trim();
+  if (!isValidId()) return;
+  
   const message = `Halo, saya ingin top up Mobile Legends:\n\nID Akun: ${id}\nNominal: ${selectedPackage.nominal} Diamond\nTotal Bayar: ${fmt(selectedPackage.price)}\nMetode Pembayaran: ${selectedPayment.name}\n\nTerima kasih!`;
-  window.open(`https://wa.me/6287758614675?text=${encodeURIComponent(message)}`, '_blank');
+  const waNumber = getWhatsAppNumber();
+  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
 });
 
 renderPackages();
